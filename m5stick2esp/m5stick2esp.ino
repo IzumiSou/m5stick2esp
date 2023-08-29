@@ -19,6 +19,9 @@ typedef struct sensorData{
 
 sensorData sensordata;
 
+const uint8_t mac_device1[] = {0xD4, 0xD4, 0xDA, 0x83, 0x81, 0xFC};
+const uint8_t mac_device4[] = {0xD4, 0xD4, 0xDA, 0x85, 0x30, 0xA8};
+
 void OnDataReceived(const uint8_t *mac, const uint8_t *incomingData, int len) {
 
   //データ格納
@@ -26,6 +29,14 @@ void OnDataReceived(const uint8_t *mac, const uint8_t *incomingData, int len) {
   memcpy(&sensordata, incomingData, sizeof(sensorData));
 
   Serial.println("----------------------");
+  if (memcmp(mac, mac_device1, sizeof(mac)) == 0) {
+    Serial.print("device1");
+    Serial.println();
+  }
+  if (memcmp(mac, mac_device4, sizeof(mac)) == 0) {
+    Serial.print("device4");
+    Serial.println();
+  }
   Serial.println("data received");
   Serial.print("temp: ");
   Serial.println(sensordata.temperature);
