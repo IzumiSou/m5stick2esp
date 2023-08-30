@@ -1,5 +1,4 @@
-#define I2C_MODE 1
-#define MOISTURE_MODE 1
+
 
 #include <M5Unified.h>
 #include <Wire.h>
@@ -48,16 +47,10 @@ void onDataSend(const uint8_t *mac_addr, esp_now_send_status_t status)
   return;
 }
 
-#if I2C_MODE && !MOISTURE_MODE
   typedef struct sensorData{
     float temperature = 0.0f;
     float humidity = 0.0f;
   } sensorData;
-#elif MOISTURE_MODE && !I2C_MODE
-  typedef struct sensorData{
-    int moisture = 0;
-  } sensorData;
-#endif 
 
 sensorData sensordata;
 esp_now_peer_info_t peerSend;
@@ -91,7 +84,6 @@ void setup() {
   // send_cb
   esp_now_register_send_cb(onDataSend);
   
-#if I2C_MODE && !MOISTURE_MODE
   // I2CBus Begin
   if(pca9548a.begin()) 
   {
@@ -114,19 +106,6 @@ void setup() {
     Serial.println("Successed to get CO2 data");
     isCO2 = true;
   }
-
-#elif MOISTURE_MODE && !I2C_MODE
-  // Moisture Begin
-  if (digitalRead(32)==1 && analogRead(33)==4095) {
-    lcd_color_print("Ready", GREEN);
-    ems_isEnable = true;
-  } else if (digitalRead(32)==0 && analogRead(33)>500) {
-    lcd_color_print("Ready", GREEN);
-    ems_isEnable = true;
-  } else {
-    lcd_color_print("Failed", RED);
-  }
-#endif 
 
   Serial.println("Press A Button");
   while (true) {
@@ -152,7 +131,6 @@ uint8_t moist = 0;
 
 void loop()
 {
-#if I2C_MODE && !MOISTURE_MODE
     if(isI2C == false)
     {
       return;
@@ -202,33 +180,5 @@ void loop()
     lastTime = millis();
   }
 
-#elif MOISTURE_MODE && !I2C_MODE
-
-  if ((millis() - lastTime) > timerDelay) {  // 2000ms毎にデータを送信する
-      // データを送信する
-      // バイト列に変換
-      Serial.println("----------------------------");
-      Serial.println("time: " + String(millis()) + "[ms]");
-      Serial.println("moist: " + String(analogRead(33)));
-      
-      esp_err_t result = esp_now_send(
-        broadcastAddress,
-        (uint8_t *) &sensordata,
-        sizeof(sensorData)
-      );
-
-      if(result == ESP_OK)
-      {
-        Serial.println("Sent with success");
-      }
-      else
-      {
-        Serial.println("Error sending the data");
-      }
-
-      lastTime = millis();
-    }
-
-#endif 
   
 }
